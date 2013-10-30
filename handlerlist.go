@@ -49,19 +49,16 @@ const (
 type L []http.Handler
 
 func (l L) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	w = VarsResponseWriter{
-		ResponseWriter: w,
-		Vars:           map[string]interface{}{},
-	}
+	orw := newOurResponseWriter(w)
 	for _, h := range l {
 		if _, ok := h.(*silentHandler); ok {
-			w = &response{w, false}
-			h.ServeHTTP(w, r)
-			if w.(*response).written {
+			orw.written = false
+			h.ServeHTTP(orw, r)
+			if orw.written {
 				break
 			}
 		} else {
-			h.ServeHTTP(w, r)
+			h.ServeHTTP(orw, r)
 		}
 	}
 }
@@ -69,9 +66,32 @@ func (l L) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // VarsResponseWriter is a http.ResponseWriter which gives access
 // to a map. The map can be filled with arbitrary data and is supposed
 // to be out-of-band channel to pass data between handlers in a handler list.
-type VarsResponseWriter struct {
+type VarsResponseWriter interface {
 	http.ResponseWriter
-	Vars map[string]interface{}
+	Vars() map[string]interface{}
+}
+
+func newOurResponseWriter(w http.ResponseWriter) *ourResponseWriter {
+	return &ourResponseWriter{
+		ResponseWriter: w,
+		vars:           map[string]interface{}{},
+		written:        false,
+	}
+}
+
+type ourResponseWriter struct {
+	http.ResponseWriter
+	vars    map[string]interface{}
+	written bool
+}
+
+func (orw *ourResponseWriter) Vars() map[string]interface{} {
+	return orw.vars
+}
+
+func (orw *ourResponseWriter) WriteHeader(n int) {
+	orw.written = true
+	orw.ResponseWriter.WriteHeader(n)
 }
 
 type silentHandler struct {
@@ -98,16 +118,4 @@ func (ms MethodSwitch) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	handler.ServeHTTP(w, r)
-}
-
-// A wrapper for http.ResponseWriter to record
-// if a header has been written
-type response struct {
-	http.ResponseWriter
-	written bool
-}
-
-func (r *response) WriteHeader(n int) {
-	r.written = true
-	r.ResponseWriter.WriteHeader(n)
 }

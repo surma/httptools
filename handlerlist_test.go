@@ -25,13 +25,30 @@ func TestHandlerList_IsVarsResponseWriter(t *testing.T) {
 	}
 }
 
+func TestHandlerList_IsSilentVarsResponseWriter(t *testing.T) {
+	h := L{
+		SilentHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			_, ok := w.(VarsResponseWriter)
+			w.Header().Add("WasVRW", fmt.Sprintf("%v", ok))
+		})),
+	}
+
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, nil)
+	expected := "true"
+	got := rr.HeaderMap.Get("WasVRW")
+	if !reflect.DeepEqual(got, expected) {
+		t.Fatalf("Header list wrong. Expected %#v, got %#v", expected, got)
+	}
+}
+
 func TestHandlerList_VarsResponseWriterPersistency(t *testing.T) {
 	h := L{
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.(VarsResponseWriter).Vars["SomeData"] = "Data"
+			w.(VarsResponseWriter).Vars()["SomeData"] = "Data"
 		}),
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ok := w.(VarsResponseWriter).Vars["SomeData"].(string) == "Data"
+			ok := w.(VarsResponseWriter).Vars()["SomeData"].(string) == "Data"
 			w.Header().Add("WasVRWDataCorrect", fmt.Sprintf("%v", ok))
 		}),
 	}
