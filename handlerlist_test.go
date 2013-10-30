@@ -1,11 +1,49 @@
 package handlerlist
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
 	"testing"
 )
+
+func TestHandlerList_IsVarsResponseWriter(t *testing.T) {
+	h := L{
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			_, ok := w.(VarsResponseWriter)
+			w.Header().Add("WasVRW", fmt.Sprintf("%v", ok))
+		}),
+	}
+
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, nil)
+	expected := "true"
+	got := rr.HeaderMap.Get("WasVRW")
+	if !reflect.DeepEqual(got, expected) {
+		t.Fatalf("Header list wrong. Expected %#v, got %#v", expected, got)
+	}
+}
+
+func TestHandlerList_VarsResponseWriterPersistency(t *testing.T) {
+	h := L{
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.(VarsResponseWriter).Vars["SomeData"] = "Data"
+		}),
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ok := w.(VarsResponseWriter).Vars["SomeData"].(string) == "Data"
+			w.Header().Add("WasVRWDataCorrect", fmt.Sprintf("%v", ok))
+		}),
+	}
+
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, nil)
+	expected := "true"
+	got := rr.HeaderMap.Get("WasVRWDataCorrect")
+	if !reflect.DeepEqual(got, expected) {
+		t.Fatalf("Header list wrong. Expected %#v, got %#v", expected, got)
+	}
+}
 
 func TestHandlerList_Order(t *testing.T) {
 	h := L{

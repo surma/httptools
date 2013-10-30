@@ -14,6 +14,10 @@ import (
 type L []http.Handler
 
 func (l L) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	w = VarsResponseWriter{
+		ResponseWriter: w,
+		Vars:           map[string]interface{}{},
+	}
 	for _, h := range l {
 		if _, ok := h.(*silentHandler); ok {
 			w = &response{w, false}
@@ -27,6 +31,14 @@ func (l L) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// VarsResponseWriter is a http.ResponseWriter which gives access
+// to a map. The map can be filled with arbitrary data and is supposed
+// to be out-of-band channel to pass data between handlers in a HandlerList.
+type VarsResponseWriter struct {
+	http.ResponseWriter
+	Vars map[string]interface{}
+}
+
 type silentHandler struct {
 	http.Handler
 }
@@ -34,6 +46,8 @@ type silentHandler struct {
 // "Casts" the given handler into a silent handler.
 // Silent handlers are expected to produce no output. If they
 // do, it is assumend to be an error message/error code.
+// In a HandlerList, this execution of the list will be aborted if a
+// SilentHandler produces output.
 func SilentHandler(h http.Handler) *silentHandler {
 	return &silentHandler{h}
 }
