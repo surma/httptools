@@ -1,9 +1,42 @@
 // Package handlerlist provides the type `L` with which multiple
-// http.Handler can be chained to be executed in sequence.
+// http.Handler can be chained to be executed sequentially.
+//
+// Example:
+//
+//    func userData(w http.ResponseWriter, r *http.Request) {
+//    	// Session magic
+//    	session, err := openSession(r)
+//    	if err != nil {
+//    		http.Error(w, "Could not open session", http.StatusBadRequest)
+//    	}
+//    	w.(*handlerlist.VarsResponseWriter).Vars["UID"] = session.UserId
+//    }
+//
+//    func showProfile(w http.ResponseWriter, r *http.Request) {
+//    	uid := w.(*handlerlist.VarsResponseWriter).Vars["UID"].(string)
+//
+//    	profile := userProfile(uid)
+//    	renderProfileTemplate(w, profile)
+//    }
+//
+//    func main() {
+//    	// ...
+//    	http.Handle("/profile", handlerList.L {
+//    		http.HandlerFunc(userData),
+//    		handlerlist.SilentHandler(
+//    			http.HandlerFunc(showProfile),
+//    		)
+//    	})
+//    	// ...
+//    }
 package handlerlist
 
 import (
 	"net/http"
+)
+
+const (
+	VERSION = "1.0.0"
 )
 
 // A handler list is a list of http.Handlers which are
@@ -11,6 +44,8 @@ import (
 // it produces output (i.e. calls WriteHeader()), it is assumed
 // to be an error message/error code and executing the remaining
 // handlers in the list will be skipped.
+// The ResponseWriter will have an VarsResponseWriter as an underlying
+// type to make data passing between handlers more convenient.
 type L []http.Handler
 
 func (l L) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -33,7 +68,7 @@ func (l L) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // VarsResponseWriter is a http.ResponseWriter which gives access
 // to a map. The map can be filled with arbitrary data and is supposed
-// to be out-of-band channel to pass data between handlers in a HandlerList.
+// to be out-of-band channel to pass data between handlers in a handler list.
 type VarsResponseWriter struct {
 	http.ResponseWriter
 	Vars map[string]interface{}
