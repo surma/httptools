@@ -78,6 +78,37 @@ func TestHandlerList_Fail(t *testing.T) {
 	}
 }
 
+func TestMethodSwitch(t *testing.T) {
+	h := MethodSwitch{
+		"GET":  http.HandlerFunc(handlerA),
+		"POST": http.HandlerFunc(handlerB),
+		"PUT":  http.HandlerFunc(handlerC),
+	}
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, MustRequest(http.NewRequest("GET", "/", nil)))
+	expected := []string{"a"}
+	got := rr.HeaderMap["Handler"]
+	if !reflect.DeepEqual(got, expected) {
+		t.Fatalf("Header list wrong. Expected %#v, got %#v", expected, got)
+	}
+
+	rr = httptest.NewRecorder()
+	h.ServeHTTP(rr, MustRequest(http.NewRequest("POST", "/", nil)))
+	expected = []string{"b"}
+	got = rr.HeaderMap["Handler"]
+	if !reflect.DeepEqual(got, expected) {
+		t.Fatalf("Header list wrong. Expected %#v, got %#v", expected, got)
+	}
+
+	rr = httptest.NewRecorder()
+	h.ServeHTTP(rr, MustRequest(http.NewRequest("PUT", "/", nil)))
+	expected = []string{"c"}
+	got = rr.HeaderMap["Handler"]
+	if !reflect.DeepEqual(got, expected) {
+		t.Fatalf("Header list wrong. Expected %#v, got %#v", expected, got)
+	}
+}
+
 func handlerA(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Handler", "a")
 }
@@ -92,4 +123,11 @@ func handlerC(w http.ResponseWriter, r *http.Request) {
 
 func failHandler(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "Error", http.StatusInternalServerError)
+}
+
+func MustRequest(r *http.Request, err error) *http.Request {
+	if err != nil {
+		panic(err)
+	}
+	return r
 }
