@@ -35,6 +35,10 @@ import (
 	"net/http"
 )
 
+const (
+	VERSION = "1.0.0"
+)
+
 // A handler list is a list of http.Handlers which are
 // executed sequentially. If a handler is a SilentHandler and
 // it produces output (i.e. calls WriteHeader()), it is assumed
