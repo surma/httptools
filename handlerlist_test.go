@@ -1,4 +1,4 @@
-package main
+package handlerlist
 
 import (
 	"net/http"
@@ -8,7 +8,7 @@ import (
 )
 
 func TestHandlerList_Order(t *testing.T) {
-	h := HandlerList{
+	h := L{
 		SilentHandler(http.HandlerFunc(handlerA)),
 		SilentHandler(http.HandlerFunc(handlerB)),
 		SilentHandler(http.HandlerFunc(handlerC)),
@@ -24,7 +24,7 @@ func TestHandlerList_Order(t *testing.T) {
 }
 
 func TestHandlerList_Fail(t *testing.T) {
-	h := HandlerList{
+	h := L{
 		SilentHandler(http.HandlerFunc(handlerA)),
 		SilentHandler(http.HandlerFunc(handlerB)),
 		SilentHandler(http.HandlerFunc(failHandler)),

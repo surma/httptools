@@ -1,4 +1,6 @@
-package main
+// Package handlerlist provides the type `L` with which multiple
+// http.Handler can be chained to be executed in sequence.
+package handlerlist
 
 import (
 	"net/http"
@@ -9,10 +11,10 @@ import (
 // it produces output (i.e. calls WriteHeader()), it is assumed
 // to be an error message/error code and executing the remaining
 // handlers in the list will be skipped.
-type HandlerList []http.Handler
+type L []http.Handler
 
-func (hl HandlerList) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	for _, h := range hl {
+func (l L) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	for _, h := range l {
 		if _, ok := h.(*silentHandler); ok {
 			w = &response{w, false}
 			h.ServeHTTP(w, r)
