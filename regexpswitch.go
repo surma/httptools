@@ -4,9 +4,27 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"sort"
 )
 
-type regexpSwitch map[*regexp.Regexp]http.Handler
+type regexpRule struct {
+	re *regexp.Regexp
+	h  http.Handler
+}
+
+type regexpSwitch []regexpRule
+
+func (rs regexpSwitch) Len() int {
+	return len(rs)
+}
+
+func (rs regexpSwitch) Swap(i, j int) {
+	rs[i], rs[j] = rs[j], rs[i]
+}
+
+func (rs regexpSwitch) Less(i, j int) bool {
+	return len(rs[i].re.String()) < len(rs[j].re.String())
+}
 
 func (rs regexpSwitch) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	orw, ok := w.(*ourResponseWriter)
@@ -14,12 +32,12 @@ func (rs regexpSwitch) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		orw = newOurResponseWriter(w)
 	}
 
-	for re, h := range rs {
-		if m := re.FindStringSubmatch(r.URL.Path); m != nil {
+	for _, rule := range rs {
+		if m := rule.re.FindStringSubmatch(r.URL.Path); m != nil {
 			for i := 1; i < len(m); i++ {
 				orw.Vars()[fmt.Sprintf("%d", i)] = m[i]
 			}
-			h.ServeHTTP(orw, r)
+			rule.h.ServeHTTP(orw, r)
 			return
 		}
 	}
@@ -33,8 +51,12 @@ func (rs regexpSwitch) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func NewRegexpSwitch(routes map[string]http.Handler) http.Handler {
 	rs := regexpSwitch{}
 	for re, h := range routes {
-		rs[mustRegexp("^"+re+"$")] = h
+		rs = append(rs, regexpRule{
+			re: mustRegexp("^" + re + "$"),
+			h:  h,
+		})
 	}
+	sort.Sort(sort.Reverse(rs))
 	return rs
 }
 
