@@ -26,15 +26,19 @@ func (rs regexpSwitch) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "Not found", http.StatusNotFound)
 }
 
+// A regexp switch takes a map of regexp strings and handlers.
+// If a request path matches a regexp, the corresponding handler is
+// executed. Submatches will be put inside a VarsResponseWriter with the
+// keys "1", "2", ...
 func NewRegexpSwitch(routes map[string]http.Handler) http.Handler {
 	rs := regexpSwitch{}
 	for re, h := range routes {
-		rs[MustRegexp("^"+re+"$")] = h
+		rs[mustRegexp("^"+re+"$")] = h
 	}
 	return rs
 }
 
-func MustRegexp(re string) *regexp.Regexp {
+func mustRegexp(re string) *regexp.Regexp {
 	r, err := regexp.CompilePOSIX(re)
 	if err != nil {
 		panic(err)

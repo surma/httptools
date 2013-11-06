@@ -13,8 +13,8 @@ const (
 // it produces output (i.e. calls WriteHeader()), it is assumed
 // to be an error message/error code and executing the remaining
 // handlers in the list will be skipped.
-// The ResponseWriter will have an VarsResponseWriter as an underlying
-// type to make data passing between handlers more convenient.
+// The ResponseWriter will be an VarsResponseWriter to make data
+// passing between handlers more convenient.
 type L []http.Handler
 
 func (l L) ServeHTTP(w http.ResponseWriter, r *http.Request) {
