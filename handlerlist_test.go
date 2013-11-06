@@ -1,4 +1,4 @@
-package handlerlist
+package httptools
 
 import (
 	"fmt"
@@ -8,11 +8,13 @@ import (
 	"testing"
 )
 
-func TestHandlerList_IsVarsResponseWriter(t *testing.T) {
+func TestHandlerList_IsModifiedResponseWriter(t *testing.T) {
 	h := L{
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			_, ok := w.(VarsResponseWriter)
 			w.Header().Add("WasVRW", fmt.Sprintf("%v", ok))
+			_, ok = w.(CheckResponseWriter)
+			w.Header().Add("WasCRW", fmt.Sprintf("%v", ok))
 		}),
 	}
 
@@ -23,13 +25,19 @@ func TestHandlerList_IsVarsResponseWriter(t *testing.T) {
 	if !reflect.DeepEqual(got, expected) {
 		t.Fatalf("Header list wrong. Expected %#v, got %#v", expected, got)
 	}
+	got = rr.HeaderMap.Get("WasCRW")
+	if !reflect.DeepEqual(got, expected) {
+		t.Fatalf("Header list wrong. Expected %#v, got %#v", expected, got)
+	}
 }
 
-func TestHandlerList_IsSilentVarsResponseWriter(t *testing.T) {
+func TestHandlerList_IsSilentModifiedResponseWriter(t *testing.T) {
 	h := L{
 		SilentHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			_, ok := w.(VarsResponseWriter)
 			w.Header().Add("WasVRW", fmt.Sprintf("%v", ok))
+			_, ok = w.(CheckResponseWriter)
+			w.Header().Add("WasCRW", fmt.Sprintf("%v", ok))
 		})),
 	}
 
@@ -37,6 +45,10 @@ func TestHandlerList_IsSilentVarsResponseWriter(t *testing.T) {
 	h.ServeHTTP(rr, nil)
 	expected := "true"
 	got := rr.HeaderMap.Get("WasVRW")
+	if !reflect.DeepEqual(got, expected) {
+		t.Fatalf("Header list wrong. Expected %#v, got %#v", expected, got)
+	}
+	got = rr.HeaderMap.Get("WasCRW")
 	if !reflect.DeepEqual(got, expected) {
 		t.Fatalf("Header list wrong. Expected %#v, got %#v", expected, got)
 	}
@@ -90,37 +102,6 @@ func TestHandlerList_Fail(t *testing.T) {
 	h.ServeHTTP(rr, nil)
 	expected := []string{"a", "b"}
 	got := rr.HeaderMap["Handler"]
-	if !reflect.DeepEqual(got, expected) {
-		t.Fatalf("Header list wrong. Expected %#v, got %#v", expected, got)
-	}
-}
-
-func TestMethodSwitch(t *testing.T) {
-	h := MethodSwitch{
-		"GET":  http.HandlerFunc(handlerA),
-		"POST": http.HandlerFunc(handlerB),
-		"PUT":  http.HandlerFunc(handlerC),
-	}
-	rr := httptest.NewRecorder()
-	h.ServeHTTP(rr, MustRequest(http.NewRequest("GET", "/", nil)))
-	expected := []string{"a"}
-	got := rr.HeaderMap["Handler"]
-	if !reflect.DeepEqual(got, expected) {
-		t.Fatalf("Header list wrong. Expected %#v, got %#v", expected, got)
-	}
-
-	rr = httptest.NewRecorder()
-	h.ServeHTTP(rr, MustRequest(http.NewRequest("POST", "/", nil)))
-	expected = []string{"b"}
-	got = rr.HeaderMap["Handler"]
-	if !reflect.DeepEqual(got, expected) {
-		t.Fatalf("Header list wrong. Expected %#v, got %#v", expected, got)
-	}
-
-	rr = httptest.NewRecorder()
-	h.ServeHTTP(rr, MustRequest(http.NewRequest("PUT", "/", nil)))
-	expected = []string{"c"}
-	got = rr.HeaderMap["Handler"]
 	if !reflect.DeepEqual(got, expected) {
 		t.Fatalf("Header list wrong. Expected %#v, got %#v", expected, got)
 	}
