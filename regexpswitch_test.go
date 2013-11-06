@@ -54,3 +54,16 @@ func TestRegexpSwitch_Routing(t *testing.T) {
 		t.Fatalf("Unexpected status code. Expected %d, got %d", expectedCode, rr.Code)
 	}
 }
+
+func ExampleNewRegexpSwitch() {
+	rr := NewRegexpSwitch(map[string]http.Handler{
+		"/people/([a-z]+)": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			vars := w.(VarsResponseWriter).Vars()
+			fmt.Printf("You are looking for %s", vars["1"].(string))
+		}),
+	})
+	req, _ := http.NewRequest("GET", "/people/peter", nil)
+	rr.ServeHTTP(httptest.NewRecorder(), req)
+	// Output:
+	// You are looking for peter
+}
