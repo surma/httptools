@@ -10,7 +10,7 @@ import (
 
 func TestRegexpSwitch_IsModifiedResponseWriter(t *testing.T) {
 	rs := NewRegexpSwitch(map[string]http.Handler{
-		"^.*$": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		"/.*": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			_, ok := w.(VarsResponseWriter)
 			w.Header().Add("WasVRW", fmt.Sprintf("%v", ok))
 			_, ok = w.(CheckResponseWriter)
@@ -33,7 +33,7 @@ func TestRegexpSwitch_IsModifiedResponseWriter(t *testing.T) {
 
 func TestRegexpSwitch_Routing(t *testing.T) {
 	rs := NewRegexpSwitch(map[string]http.Handler{
-		"^/([a-z]+)/?$": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		"/([a-z]+)/?": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			vrw := w.(VarsResponseWriter)
 			w.Header().Set("X-Path", vrw.Vars()["1"].(string))
 		}),
@@ -52,6 +52,21 @@ func TestRegexpSwitch_Routing(t *testing.T) {
 	expectedCode := http.StatusNotFound
 	if rr.Code != expectedCode {
 		t.Fatalf("Unexpected status code. Expected %d, got %d", expectedCode, rr.Code)
+	}
+}
+
+func TestRegexpSwitch_PatternPrecedence(t *testing.T) {
+	rs := NewRegexpSwitch(map[string]http.Handler{
+		"/.+":      http.HandlerFunc(handlerA),
+		"/some/.+": http.HandlerFunc(handlerB),
+	})
+
+	rr := httptest.NewRecorder()
+	rs.ServeHTTP(rr, MustRequest(http.NewRequest("GET", "/some/thing/bla", nil)))
+	expected := []string{"b"}
+	got := rr.HeaderMap["Handler"]
+	if !reflect.DeepEqual(got, expected) {
+		t.Fatalf("Header list wrong. Expected %#v, got %#v", expected, got)
 	}
 }
 
