@@ -48,6 +48,7 @@ func (rs regexpSwitch) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // If a request path matches a regexp, the corresponding handler is
 // executed. Submatches will be put inside a VarsResponseWriter with the
 // keys "1", "2", ...
+// Longer patterns take precedence over shorter ones.
 func NewRegexpSwitch(routes map[string]http.Handler) http.Handler {
 	rs := regexpSwitch{}
 	for re, h := range routes {
