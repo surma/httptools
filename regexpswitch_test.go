@@ -9,14 +9,14 @@ import (
 )
 
 func TestRegexpSwitch_IsModifiedResponseWriter(t *testing.T) {
-	rs := RegexpSwitch{
-		MustRegexp("^.*$"): http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	rs := NewRegexpSwitch(map[string]http.Handler{
+		"^.*$": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			_, ok := w.(VarsResponseWriter)
 			w.Header().Add("WasVRW", fmt.Sprintf("%v", ok))
 			_, ok = w.(CheckResponseWriter)
 			w.Header().Add("WasCRW", fmt.Sprintf("%v", ok))
 		}),
-	}
+	})
 
 	rr := httptest.NewRecorder()
 	rs.ServeHTTP(rr, MustRequest(http.NewRequest("GET", "/", nil)))
@@ -32,12 +32,12 @@ func TestRegexpSwitch_IsModifiedResponseWriter(t *testing.T) {
 }
 
 func TestRegexpSwitch_Routing(t *testing.T) {
-	rs := RegexpSwitch{
-		MustRegexp("^/([a-z]+)/?$"): http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	rs := NewRegexpSwitch(map[string]http.Handler{
+		"^/([a-z]+)/?$": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			vrw := w.(VarsResponseWriter)
 			w.Header().Set("X-Path", vrw.Vars()["1"].(string))
 		}),
-	}
+	})
 
 	rr := httptest.NewRecorder()
 	rs.ServeHTTP(rr, MustRequest(http.NewRequest("GET", "/testpath/", nil)))

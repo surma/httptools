@@ -6,9 +6,9 @@ import (
 	"regexp"
 )
 
-type RegexpSwitch map[*regexp.Regexp]http.Handler
+type regexpSwitch map[*regexp.Regexp]http.Handler
 
-func (rs RegexpSwitch) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (rs regexpSwitch) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	orw, ok := w.(*ourResponseWriter)
 	if !ok {
 		orw = newOurResponseWriter(w)
@@ -24,6 +24,14 @@ func (rs RegexpSwitch) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	http.Error(w, "Not found", http.StatusNotFound)
+}
+
+func NewRegexpSwitch(routes map[string]http.Handler) http.Handler {
+	rs := regexpSwitch{}
+	for re, h := range routes {
+		rs[MustRegexp("^"+re+"$")] = h
+	}
+	return rs
 }
 
 func MustRegexp(re string) *regexp.Regexp {
