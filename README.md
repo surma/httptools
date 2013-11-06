@@ -1,34 +1,22 @@
-Package handlerlist provides the type `L` with which multiple
-http.Handler can be chained to be executed sequentially.
+Package httptools tries to augment the basic net/http package with
+functionality found in webframeworks without breaking the original API.
 
-# Example
-```Go
-func userData(w http.ResponseWriter, r *http.Request) {
-	// Session magic
-	session, err := openSession(r)
-	if err != nil {
-		http.Error(w, "Could not open session", http.StatusBadRequest)
-	}
-	w.(*handlerlist.VarsResponseWriter).Vars["UID"] = session.UserId
-}
+For details and examples, please see the [documentation](http://godoc.org/github.com/surma/httptools).
 
-func showProfile(w http.ResponseWriter, r *http.Request) {
-	uid := w.(*handlerlist.VarsResponseWriter).Vars["UID"].(string)
-	profile := userProfile(uid)
-	renderProfileTemplate(w, profile)
-}
-
-func main() {
-	// ...
-	http.Handle("/profile", handlerList.L {
-		http.HandlerFunc(userData),
-		handlerlist.SilentHandler(
-			http.HandlerFunc(showProfile),
-		)
-	})
-	// ...
-}
-```
+# Tools
+httptools provides the following tools
+## Handler list
+Define a sequence of `http.Handler`. One will be executed after another. A
+customized `http.ResponseWriter` allows the passing of data in between handlers.
+## Silent handler
+If a silent handler produces output, it is assumed to be an error. If the
+silent handler is in a handler list, the execution of the list will be aborted.
+## Method switch
+Dispatch requests to different handlers according the the HTTP verb used
+in the request.
+## RegexpSwitch
+Dispatch requests to different handlers according to regexps being matched
+agains the request path.
 
 ---
 Version 1.0.0
