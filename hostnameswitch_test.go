@@ -59,3 +59,18 @@ func TestHostnameSwitch_Default(t *testing.T) {
 		t.Fatalf("Header list wrong. Expected %#v, got %#v", expected, got)
 	}
 }
+
+func TestHostnameSwitch_IgnorePortNumbers(t *testing.T) {
+	h := HostnameSwitch{
+		"www.google.com": http.HandlerFunc(handlerA),
+		"_":              http.HandlerFunc(handlerB),
+	}
+
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, MustRequest(http.NewRequest("GET", "http://www.google.com:8080/Test/123", nil)))
+	expected := []string{"a"}
+	got := rr.HeaderMap["Handler"]
+	if !reflect.DeepEqual(got, expected) {
+		t.Fatalf("Header list wrong. Expected %#v, got %#v", expected, got)
+	}
+}
