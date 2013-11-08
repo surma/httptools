@@ -33,12 +33,16 @@ customized `http.ResponseWriter` allows the passing of data in between handlers.
 ### Silent handler
 If a silent handler produces output, it is assumed to be an error. If the
 silent handler is in a handler list, the execution of the list will be aborted.
-### Method switch
+### Switches
+#### Method switch
 Dispatch requests to different handlers according the the HTTP verb used
 in the request.
-### RegexpSwitch
+#### RegexpSwitch
 Dispatch requests to different handlers according to regexps being matched
 agains the request path.
+#### HostnameSwitch
+Dispatch requests to different handlers according to the hostname used
+in the request.
 
 
 ---
