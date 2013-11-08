@@ -3,6 +3,8 @@ functionality found in webframeworks without breaking the original API.
 
 For details and examples, please see the [documentation](http://godoc.org/github.com/surma/httptools).
 
+[![Build Status](https://drone.io/github.com/surma/httptools/status.png)](https://drone.io/github.com/surma/httptools/latest)
+
 ## Contrived example
 
 ```Go
@@ -31,13 +33,21 @@ customized `http.ResponseWriter` allows the passing of data in between handlers.
 ### Silent handler
 If a silent handler produces output, it is assumed to be an error. If the
 silent handler is in a handler list, the execution of the list will be aborted.
-### Method switch
+### Switches
+#### Method switch
 Dispatch requests to different handlers according the the HTTP verb used
 in the request.
-### RegexpSwitch
+#### RegexpSwitch
 Dispatch requests to different handlers according to regexps being matched
 agains the request path.
+#### HostnameSwitch
+Dispatch requests to different handlers according to the hostname used
+in the request.
+### Mounts
+Dispatch requests to different handlers according to path prefixes. The
+path prefix will be stripped from the request before being passed to the
+handler.
 
 
 ---
-Version 1.0.1
+Version 1.1.0

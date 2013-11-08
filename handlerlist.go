@@ -21,12 +21,16 @@ func (l L) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	for _, h := range l {
 		if _, ok := h.(*silentHandler); ok {
 			orw.written = false
-			h.ServeHTTP(orw, r)
+			if h != nil {
+				h.ServeHTTP(orw, r)
+			}
 			if orw.WasWritten() {
 				break
 			}
 		} else {
-			h.ServeHTTP(orw, r)
+			if h != nil {
+				h.ServeHTTP(orw, r)
+			}
 		}
 	}
 }
