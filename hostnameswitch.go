@@ -15,8 +15,12 @@ var (
 	portStripper = regexp.MustCompilePOSIX(":[0-9]+$")
 )
 
+func TrimPortNumber(host string) string {
+	return portStripper.ReplaceAllString(host, "")
+}
+
 func (hs HostnameSwitch) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	host := portStripper.ReplaceAllString(r.Host, "")
+	host := TrimPortNumber(r.Host)
 	h, ok := hs[host]
 	if ok {
 		h.ServeHTTP(w, r)
