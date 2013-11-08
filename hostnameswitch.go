@@ -23,12 +23,16 @@ func (hs HostnameSwitch) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	host := TrimPortNumber(r.Host)
 	h, ok := hs[host]
 	if ok {
-		h.ServeHTTP(w, r)
+		if h != nil {
+			h.ServeHTTP(w, r)
+		}
 		return
 	}
 	h, ok = hs["_"]
 	if ok {
-		h.ServeHTTP(w, r)
+		if h != nil {
+			h.ServeHTTP(w, r)
+		}
 		return
 	}
 	http.Error(w, "Not found", http.StatusNotFound)

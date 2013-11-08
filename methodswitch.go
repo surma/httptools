@@ -14,5 +14,7 @@ func (ms MethodSwitch) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	handler.ServeHTTP(w, r)
+	if handler != nil {
+		handler.ServeHTTP(w, r)
+	}
 }

@@ -30,9 +30,11 @@ func (m Mounts) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			if _, ok := vrw.Vars()["OrigPath"]; !ok {
 				vrw.Vars()["OrigPath"] = r.URL.Path
 			}
-			h.ServeHTTP(vrw, &nr)
+			if h != nil {
+				h.ServeHTTP(vrw, &nr)
+			}
 			return
 		}
 	}
-	http.Error(w, "Not found", http.StatusNotFound)
+	http.Error(vrw, "Not found", http.StatusNotFound)
 }

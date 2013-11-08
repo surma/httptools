@@ -8,8 +8,18 @@ import (
 )
 
 type regexpRule struct {
-	*regexp.Regexp
-	http.Handler
+	re *regexp.Regexp
+	h  http.Handler
+}
+
+func (rr regexpRule) FindStringSubmatch(s string) []string {
+	return rr.re.FindStringSubmatch(s)
+}
+
+func (rr regexpRule) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if rr.h != nil {
+		rr.h.ServeHTTP(w, r)
+	}
 }
 
 // RegexpRule represents a single rule in a RegexpSwitch.
@@ -29,21 +39,21 @@ type RegexpRule interface {
 type RegexpSwitch []RegexpRule
 
 func (rs RegexpSwitch) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	orw, ok := w.(*ourResponseWriter)
+	vrw, ok := w.(VarsResponseWriter)
 	if !ok {
-		orw = newOurResponseWriter(w)
+		vrw = newOurResponseWriter(w)
 	}
 
 	for _, rule := range rs {
 		if m := rule.FindStringSubmatch(r.URL.Path); m != nil {
 			for i := 1; i < len(m); i++ {
-				orw.Vars()[fmt.Sprintf("%d", i)] = m[i]
+				vrw.Vars()[fmt.Sprintf("%d", i)] = m[i]
 			}
-			rule.ServeHTTP(orw, r)
+			rule.ServeHTTP(vrw, r)
 			return
 		}
 	}
-	http.Error(w, "Not found", http.StatusNotFound)
+	http.Error(vrw, "Not found", http.StatusNotFound)
 }
 
 type regexpSwitch []regexpRule
@@ -57,7 +67,7 @@ func (rs regexpSwitch) Swap(i, j int) {
 }
 
 func (rs regexpSwitch) Less(i, j int) bool {
-	return len(rs[i].String()) < len(rs[j].String())
+	return len(rs[i].re.String()) < len(rs[j].re.String())
 }
 
 // A regexp switch takes a map of regexp strings and handlers.
@@ -67,8 +77,8 @@ func NewRegexpSwitch(routes map[string]http.Handler) RegexpSwitch {
 	rs := make(regexpSwitch, 0, len(routes))
 	for re, h := range routes {
 		rs = append(rs, regexpRule{
-			Regexp:  regexp.MustCompilePOSIX("^" + re + "$"),
-			Handler: h,
+			re: regexp.MustCompilePOSIX("^" + re + "$"),
+			h:  h,
 		})
 	}
 	sort.Sort(sort.Reverse(rs))
