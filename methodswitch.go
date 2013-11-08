@@ -4,7 +4,7 @@ import (
 	"net/http"
 )
 
-// MethodSwitch offers a simple way to apply different handlers depending
+// MethodSwitch dispatches request to different handlers depending
 // on the HTTP verb used in the request.
 type MethodSwitch map[string]http.Handler
 

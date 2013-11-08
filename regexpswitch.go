@@ -20,6 +20,8 @@ type RegexpRule interface {
 	http.Handler
 }
 
+// RegexpSwitch dispatches requests to different handlers depending
+// on regexp patterns the r.URL.Path matches.
 // RegexpSwitch is a slice of RegexpRules. They will be checked
 // in the order they have been provided. If a rule matches
 // (i.e. Regexp.Rule.FindStringSubmatch return value is non-nil), the
