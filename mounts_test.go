@@ -1,6 +1,7 @@
 package httptools
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -89,4 +90,23 @@ func TestMounts_CascadingOriginalPath(t *testing.T) {
 	if !reflect.DeepEqual(got, expected) {
 		t.Fatalf("Header list wrong. Expected %#v, got %#v", expected, got)
 	}
+}
+
+func ExampleMounts() {
+	ms := Mounts{
+		"/api/": Mounts{
+			"/cars": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				fmt.Println("Request path:", r.URL.Path)
+				fmt.Println("Original path:", w.(VarsResponseWriter).Vars()["OrigPath"].(string))
+			}),
+			"/people": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				// ...
+			}),
+		},
+	}
+	req, _ := http.NewRequest("GET", "/api/cars/bentley", nil)
+	ms.ServeHTTP(httptest.NewRecorder(), req)
+	// Output:
+	// Request path: /bentley
+	// Original path: /api/cars/bentley
 }

@@ -7,8 +7,8 @@ import (
 )
 
 // Mounts is a list of handlers which are mounted at the given path.
-// Mounting differs from simple path-based routing in the sense that
-// the mount path is being stripped from the request.
+// Mounting is a simple path prefix-based routing. The prefix will be
+// stripped from the request before being passed to the associated handler.
 // The original request path will available in the VarsResponseWriter
 // under "OrigPath".
 type Mounts map[string]http.Handler
