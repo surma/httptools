@@ -3,6 +3,8 @@ functionality found in webframeworks without breaking the original API.
 
 For details and examples, please see the [documentation](http://godoc.org/github.com/surma/httptools).
 
+[![Build Status](https://drone.io/github.com/surma/httptools/status.png)](https://drone.io/github.com/surma/httptools/latest)
+
 ## Contrived example
 
 ```Go
