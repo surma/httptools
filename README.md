@@ -43,6 +43,10 @@ agains the request path.
 #### HostnameSwitch
 Dispatch requests to different handlers according to the hostname used
 in the request.
+### Mounts
+Dispatch requests to different handlers according to path prefixes. The
+path prefix will be stripped from the request before being passed to the
+handler.
 
 
 ---
