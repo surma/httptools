@@ -19,7 +19,7 @@ func DiscardPathElements(n int) http.Handler {
 			vrw.Vars()["OrigPath"] = r.URL.Path
 		}
 
-		elems := strings.Split(r.URL.Path, "/")
+		elems := strings.Split(r.URL.Path[1:], "/")
 		if n >= len(elems) {
 			r.URL.Path = "/"
 			return

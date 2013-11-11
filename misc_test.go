@@ -18,6 +18,6 @@ func ExampleDiscardPathElements() {
 	req, _ = http.NewRequest("GET", "/", nil)
 	ms.ServeHTTP(httptest.NewRecorder(), req)
 	// Output:
-	// /and/a/real/path
+	// /a/real/path
 	// /
 }
