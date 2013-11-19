@@ -5,8 +5,31 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"reflect"
+	"regexp"
 	"testing"
 )
+
+func TestRegexpPathRule(t *testing.T) {
+	called := false
+	rpr := RegexpPathRule{
+		Regexp: regexp.MustCompilePOSIX("^/people/([^/]+)"),
+		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			called = true
+		}),
+	}
+	submatches, ok := rpr.Match("/people/peter")
+	if !ok {
+		t.Fatal("RegexpPathRule did not match even though it should")
+	}
+	expected := []string{"peter"}
+	if !reflect.DeepEqual(submatches, expected) {
+		t.Fatalf("Unexpected submatches. Expected %#v, got %#v.", expected, submatches)
+	}
+	rpr.ServeHTTP(nil, nil)
+	if !called {
+		t.Fatalf("Handler was not called")
+	}
+}
 
 func TestRegexpSwitch_IsModifiedResponseWriter(t *testing.T) {
 	rs := NewRegexpSwitch(map[string]http.Handler{
