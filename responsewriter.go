@@ -22,23 +22,23 @@ type CheckResponseWriter interface {
 }
 
 func newOurResponseWriter(w http.ResponseWriter) *ourResponseWriter {
-	vrw, ok := w.(VarsResponseWriter)
-	if ok {
-		return &ourResponseWriter{
-			ResponseWriter: w,
-			vars:           vrw.Vars(),
-			written:        false,
-		}
-	}
-	return &ourResponseWriter{
+	orw := &ourResponseWriter{
 		ResponseWriter: w,
 		vars:           map[string]interface{}{},
 		written:        false,
 	}
+	if vrw, ok := w.(VarsResponseWriter); ok {
+		orw.vars = vrw.Vars()
+	}
+	if hijacker, ok := w.(http.Hijacker); ok {
+		orw.Hijacker = hijacker
+	}
+	return orw
 }
 
 type ourResponseWriter struct {
 	http.ResponseWriter
+	http.Hijacker
 	vars    map[string]interface{}
 	written bool
 }
