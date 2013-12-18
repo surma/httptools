@@ -48,6 +48,5 @@ Dispatch requests to different handlers according to path prefixes. The
 path prefix will be stripped from the request before being passed to the
 handler.
 
-
 ---
-Version 1.1.0
+Version 1.2.0
