@@ -2,7 +2,6 @@ package httptools
 
 import (
 	"net/http"
-	"path"
 	"strings"
 )
 
@@ -24,6 +23,6 @@ func DiscardPathElements(n int) http.Handler {
 			r.URL.Path = "/"
 			return
 		}
-		r.URL.Path = "/" + path.Join(elems[n:]...)
+		r.URL.Path = "/" + strings.Join(elems[n:], "/")
 	})
 }

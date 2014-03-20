@@ -49,4 +49,4 @@ path prefix will be stripped from the request before being passed to the
 handler.
 
 ---
-Version 1.2.0
+Version 1.2.1
