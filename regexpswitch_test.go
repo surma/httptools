@@ -70,6 +70,22 @@ func TestRegexpSwitch_PatternPrecedence(t *testing.T) {
 	}
 }
 
+func TestRegexpSwitch_TrailingSlash(t *testing.T) {
+	rs := NewRegexpSwitch(map[string]http.Handler{
+		"/(.+)": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("X-Path", w.(VarsResponseWriter).Vars()["1"].(string))
+		}),
+	})
+
+	rr := httptest.NewRecorder()
+	rs.ServeHTTP(rr, MustRequest(http.NewRequest("GET", "/some/thing/", nil)))
+	expected := []string{"some/thing/"}
+	got := rr.HeaderMap["X-Path"]
+	if !reflect.DeepEqual(got, expected) {
+		t.Fatalf("Header list wrong. Expected %#v, got %#v", expected, got)
+	}
+}
+
 func ExampleNewRegexpSwitch() {
 	rr := NewRegexpSwitch(map[string]http.Handler{
 		"/people/([a-z]+)": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
