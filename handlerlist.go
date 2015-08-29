@@ -4,13 +4,51 @@ import (
 	"net/http"
 )
 
+// CheckResponseWriter is a http.ResponseWriter which saves wether it
+// has been written to or not.
+type CheckResponseWriter interface {
+	http.ResponseWriter
+	// Returns true if the headers have been written
+	WasWritten() bool
+}
+
+func newOurResponseWriter(w http.ResponseWriter) *ourResponseWriter {
+	orw := &ourResponseWriter{
+		ResponseWriter: w,
+		vars:           map[string]interface{}{},
+		written:        false,
+	}
+	if hijacker, ok := w.(http.Hijacker); ok {
+		orw.Hijacker = hijacker
+	}
+	return orw
+}
+
+type ourResponseWriter struct {
+	http.ResponseWriter
+	http.Hijacker
+	vars    map[string]interface{}
+	written bool
+}
+
+func (orw *ourResponseWriter) Vars() map[string]interface{} {
+	return orw.vars
+}
+
+func (orw *ourResponseWriter) WasWritten() bool {
+	return orw.written
+}
+
+func (orw *ourResponseWriter) WriteHeader(n int) {
+	orw.written = true
+	orw.ResponseWriter.WriteHeader(n)
+}
+
 // A handler list is a list of http.Handlers which are
 // executed sequentially. If a handler is a SilentHandler and
 // it produces output (i.e. calls WriteHeader()), it is assumed
 // to be an error message/error code and executing the remaining
 // handlers in the list will be skipped.
-// The ResponseWriter will be an VarsResponseWriter to make data
-// passing between handlers more convenient.
 type L []http.Handler
 
 func (l L) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -42,7 +80,7 @@ type silentHandler struct {
 // "Casts" the given handler into a silent handler.
 // Silent handlers are expected to produce no output. If they
 // do, it is assumend to be an error message/error code.
-// In a HandlerList, this execution of the list will be aborted if a
+// In a HandlerList, the execution of the list will be aborted if a
 // SilentHandler produces output.
 func SilentHandler(h http.Handler) http.Handler {
 	return &silentHandler{h}

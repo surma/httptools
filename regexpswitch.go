@@ -1,7 +1,6 @@
 package httptools
 
 import (
-	"fmt"
 	"net/http"
 	"regexp"
 	"sort"
@@ -25,7 +24,6 @@ func (rr regexpRule) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // RegexpRule represents a single rule in a RegexpSwitch.
 type RegexpRule interface {
 	// Same method provided by regexp.Regexp.
-	// The returned array will be saved to the VarsResponseWriter.
 	FindStringSubmatch(s string) []string
 	http.Handler
 }
@@ -39,21 +37,13 @@ type RegexpRule interface {
 type RegexpSwitch []RegexpRule
 
 func (rs RegexpSwitch) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	vrw, ok := w.(VarsResponseWriter)
-	if !ok {
-		vrw = newOurResponseWriter(w)
-	}
-
 	for _, rule := range rs {
 		if m := rule.FindStringSubmatch(r.URL.Path); m != nil {
-			for i := 1; i < len(m); i++ {
-				vrw.Vars()[fmt.Sprintf("%d", i)] = m[i]
-			}
-			rule.ServeHTTP(vrw, r)
+			rule.ServeHTTP(w, r)
 			return
 		}
 	}
-	http.Error(vrw, "Not found", http.StatusNotFound)
+	http.Error(w, "Not found", http.StatusNotFound)
 }
 
 type regexpSwitch []regexpRule
