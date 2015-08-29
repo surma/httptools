@@ -85,3 +85,8 @@ type silentHandler struct {
 func SilentHandler(h http.Handler) http.Handler {
 	return &silentHandler{h}
 }
+
+// Same as SilentHandler but for http.HandlerFunc
+func SilentHandlerFunc(h func(w http.ResponseWriter, r *http.Request)) http.Handler {
+	return &silentHandler{http.HandlerFunc(h)}
+}
