@@ -49,9 +49,9 @@ func (orw *ourResponseWriter) WriteHeader(n int) {
 // it produces output (i.e. calls WriteHeader()), it is assumed
 // to be an error message/error code and executing the remaining
 // handlers in the list will be skipped.
-type L []http.Handler
+type List []http.Handler
 
-func (l L) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (l List) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	orw, ok := w.(*ourResponseWriter)
 	if !ok {
 		orw = newOurResponseWriter(w)
