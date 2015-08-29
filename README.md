@@ -13,7 +13,7 @@ r := httptools.NewRegexpSwitch(map[string]http.Handler{
 		httptools.MethodSwitch{
 			"GET": ListPeople,
 			"PUT": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				name := strings.StripPrefix(r.URL.Path, "/people/"")
+				name := strings.StripPrefix(r.URL.Path, "/people/")
 				AddNewPerson(name)
 			})
 		},
