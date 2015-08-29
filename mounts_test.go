@@ -50,54 +50,11 @@ func TestMounts_Stripping(t *testing.T) {
 	}
 }
 
-func TestMounts_OriginalPath(t *testing.T) {
-	h := Mounts{
-		"/first/handler": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("X-Path", w.(VarsResponseWriter).Vars()["OrigPath"].(string))
-		}),
-	}
-
-	rr := httptest.NewRecorder()
-	h.ServeHTTP(rr, MustRequest(http.NewRequest("GET", "/first/handler/and/a/path", nil)))
-	expected := []string{"/first/handler/and/a/path"}
-	expectedCode := http.StatusOK
-	got := rr.HeaderMap["X-Path"]
-	if rr.Code != expectedCode {
-		t.Fatalf("Unexpected error code. Expected %d, got %d", expectedCode, rr.Code)
-	}
-	if !reflect.DeepEqual(got, expected) {
-		t.Fatalf("Header list wrong. Expected %#v, got %#v", expected, got)
-	}
-}
-
-func TestMounts_CascadingOriginalPath(t *testing.T) {
-	h := Mounts{
-		"/first/": Mounts{
-			"/handler": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				w.Header().Set("X-Path", w.(VarsResponseWriter).Vars()["OrigPath"].(string))
-			}),
-		},
-	}
-
-	rr := httptest.NewRecorder()
-	h.ServeHTTP(rr, MustRequest(http.NewRequest("GET", "/first/handler/and/a/path", nil)))
-	expected := []string{"/first/handler/and/a/path"}
-	expectedCode := http.StatusOK
-	got := rr.HeaderMap["X-Path"]
-	if rr.Code != expectedCode {
-		t.Fatalf("Unexpected error code. Expected %d, got %d", expectedCode, rr.Code)
-	}
-	if !reflect.DeepEqual(got, expected) {
-		t.Fatalf("Header list wrong. Expected %#v, got %#v", expected, got)
-	}
-}
-
 func ExampleMounts() {
 	ms := Mounts{
 		"/api/": Mounts{
 			"/cars": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				fmt.Println("Request path:", r.URL.Path)
-				fmt.Println("Original path:", w.(VarsResponseWriter).Vars()["OrigPath"].(string))
 			}),
 			"/people": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				// ...
@@ -108,5 +65,4 @@ func ExampleMounts() {
 	ms.ServeHTTP(httptest.NewRecorder(), req)
 	// Output:
 	// Request path: /bentley
-	// Original path: /api/cars/bentley
 }
