@@ -9,7 +9,7 @@ import (
 )
 
 func TestHandlerList_IsModifiedResponseWriter(t *testing.T) {
-	h := L{
+	h := List{
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			_, ok := w.(CheckResponseWriter)
 			w.Header().Add("WasCRW", fmt.Sprintf("%v", ok))
@@ -26,7 +26,7 @@ func TestHandlerList_IsModifiedResponseWriter(t *testing.T) {
 }
 
 func TestHandlerList_IsSilentModifiedResponseWriter(t *testing.T) {
-	h := L{
+	h := List{
 		SilentHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			_, ok := w.(CheckResponseWriter)
 			w.Header().Add("WasCRW", fmt.Sprintf("%v", ok))
@@ -43,7 +43,7 @@ func TestHandlerList_IsSilentModifiedResponseWriter(t *testing.T) {
 }
 
 func TestHandlerList_Order(t *testing.T) {
-	h := L{
+	h := List{
 		SilentHandler(http.HandlerFunc(handlerA)),
 		SilentHandler(http.HandlerFunc(handlerB)),
 		SilentHandler(http.HandlerFunc(handlerC)),
@@ -59,7 +59,7 @@ func TestHandlerList_Order(t *testing.T) {
 }
 
 func TestHandlerList_Fail(t *testing.T) {
-	h := L{
+	h := List{
 		SilentHandler(http.HandlerFunc(handlerA)),
 		SilentHandler(http.HandlerFunc(handlerB)),
 		SilentHandler(http.HandlerFunc(failHandler)),
