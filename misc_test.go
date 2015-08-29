@@ -9,7 +9,7 @@ import (
 )
 
 func TestDiscardPathElements_TrailingSlash(t *testing.T) {
-	ms := L{
+	ms := List{
 		DiscardPathElements(2),
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("X-Path", r.URL.Path)
@@ -26,7 +26,7 @@ func TestDiscardPathElements_TrailingSlash(t *testing.T) {
 }
 
 func ExampleDiscardPathElements() {
-	ms := L{
+	ms := List{
 		DiscardPathElements(2),
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(r.URL.Path)
